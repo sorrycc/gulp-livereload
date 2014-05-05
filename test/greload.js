@@ -81,14 +81,17 @@ describe('gulp-livereload', function() {
         }
       })).ok;
     });
-    it('works', function() {
+    it('works on watch event objects', function() {
       var port = 35726;
       var reload = greload.listen(port);
       var spy = sinon.spy(greload.servers[port], 'changed');
-      greload.changed(file, reload);
+      greload.changed({
+        type: 'added',
+        path: '/styles/main.css'
+      }, reload);
       should(spy.calledWith({
         body: {
-          files: ['/foo/bar.css']
+          files: ['/styles/main.css']
         }
       })).ok;
     });
