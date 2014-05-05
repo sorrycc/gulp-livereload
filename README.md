@@ -12,16 +12,6 @@ Install
 npm install --save-dev gulp-livereload
 ```
 
-### livereload([param])
-
-
-#### param
-Type: `Number` or `tinylr.Server` <br>
-
-Port number livereload will listen to or an instance of a `tiny-lr` server. If none is passed, a livereload server is automatically created listening to the default port `35729`.
-
-Returns a `Transform` stream
-
 Sample Usages
 ---
 
@@ -56,10 +46,8 @@ gulp.task('less', function() {
 });
 
 gulp.task('watch', function() {
-  var server = livereload();
-  gulp.watch('build/**').on('change', function(file) {
-      server.changed(file.path);
-  });
+  livereload.listen();
+  gulp.watch('build/**').on('change', livereload.changed);
 });
 ```
 
@@ -71,17 +59,48 @@ var livereload = require('gulp-livereload'),
 
 gulp.task('server', function(next) {
   var connect = require('connect'),
-      server = connect();
-  server.use(connect.static(dest)).listen(process.env.PORT || 80, next);
+  connect().use(connect.static(dest)).listen(process.env.PORT || 80, next);
 });
 
 gulp.task('watch', ['server'], function() {
-  var server = livereload();
-  gulp.watch(dest + '/**').on('change', function(file) {
-      server.changed(file.path);
-  });
+  livereload.listen();
+  gulp.watch(dest + '/**').on('change', livereload.changed);
 });
 ```
+
+API
+---
+
+### livereload([param])
+
+#### param
+Type: `Number` or `tinylr.Server` <br>
+Default: `35729` <br>
+
+Port number livereload will listen to or an instance of a `tiny-lr` server. If none is passed, a livereload server is automatically created listening to the default port `35729`.
+
+Returns a `Transform` stream
+
+### livereload.listen([param])
+
+#### param
+Type: `Number` or `tinylr.Server` <br>
+Default: `35729` <br>
+
+Port number livereload will listen to or an instance of a `tiny-lr` server. If none is passed, a livereload server is automatically created listening to the default port `35729`.
+
+Returns a Livereload server
+
+### livereload.changed(path, [server])
+
+#### param
+Type: `String` or `Object` <br>
+
+#### server
+Type: `Number` or `tinylr.Server` <br>
+Default: `35729` <br>
+
+A path to a file or an object which has a `path` property.
 
 License
 ---
