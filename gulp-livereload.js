@@ -1,20 +1,14 @@
 'use strict';
 var gutil = require('gulp-util'),
-      path = require('path'),
-      tinylr = require('tiny-lr'),
-      Transform = require('stream').Transform,
-      magenta = gutil.colors.magenta,
-      defaultPort = 35729;
+    path = require('path'),
+    tinylr = require('tiny-lr'),
+    Transform = require('stream').Transform,
+    magenta = gutil.colors.magenta,
+    defaultPort = 35729;
 
 module.exports = exports = function (server) {
   var reload = new Transform({objectMode:true});
-  exports.servers = exports.servers || {};
 
-  if (typeof server === 'undefined') {
-    server = defaultPort;
-  }
-
-  exports.middleware = tinylr.middleware;
   server = exports.listen(server);
 
   reload._transform = function(file, encoding, next) {
@@ -26,7 +20,14 @@ module.exports = exports = function (server) {
   return reload;
 };
 
+exports.middleware = tinylr.middleware;
+
+exports.servers = exports.servers || {};
+
 exports.listen  = function(server) {
+  if (typeof server === 'undefined') {
+    server = defaultPort;
+  }
   if (typeof server === 'number') {
     var port = server;
     if (exports.servers[port]) {
