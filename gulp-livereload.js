@@ -1,21 +1,32 @@
-module.exports = exports = function (server) {
-  'use strict';
-  exports.servers = exports.servers || {};
-
-  var gutil = require('gulp-util'),
+'use strict';
+var gutil = require('gulp-util'),
       path = require('path'),
       tinylr = require('tiny-lr'),
       Transform = require('stream').Transform,
-      reload = new Transform({objectMode:true}),
       magenta = gutil.colors.magenta,
       defaultPort = 35729;
+
+module.exports = exports = function (server) {
+  var reload = new Transform({objectMode:true});
+  exports.servers = exports.servers || {};
 
   if (typeof server === 'undefined') {
     server = defaultPort;
   }
 
   exports.middleware = tinylr.middleware;
+  server = exports.listen(server);
 
+  reload._transform = function(file, encoding, next) {
+    exports.changed(file.path, server);
+    this.push(file);
+    next();
+  };
+
+  return reload;
+};
+
+exports.listen  = function(server) {
   if (typeof server === 'number') {
     var port = server;
     if (exports.servers[port]) {
@@ -31,24 +42,19 @@ module.exports = exports = function (server) {
     }
   }
 
-  reload.changed = function(filePath) {
-    filePath = filePath.hasOwnProperty('path')? filePath.path : filePath;
-    if(process.env.NODE_DEBUG && process.env.NODE_DEBUG.match(/livereload/)) {
-      gutil.log(magenta(path.basename(filePath)) + ' was reloaded.');
+  return server;
+};
+
+exports.changed = function(filePath, server) {
+  server = server || exports.servers[defaultPort];
+  filePath = filePath.hasOwnProperty('path')? filePath.path : filePath;
+  if(process.env.NODE_DEBUG && process.env.NODE_DEBUG.match(/livereload/)) {
+    gutil.log(magenta(path.basename(filePath)) + ' was reloaded.');
+  }
+
+  server.changed({
+    body: {
+      files: [filePath]
     }
-
-    server.changed({
-      body: {
-        files: [filePath]
-      }
-    });
-  };
-
-  reload._transform = function(file, encoding, next) {
-    reload.changed(file.path);
-    this.push(file);
-    next();
-  };
-
-  return reload;
+  });
 };

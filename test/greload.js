@@ -7,12 +7,9 @@ describe('gulp-livereload', function() {
       should = require('should'),
       file = new gutil.File({
       path: '/foo/bar.css'
-    }),
-      server;
-  beforeEach(function() {
-    server = tinylr();
-  });
+    });
   it('reloads file passing a livereload server instance', function(done) {
+    var server = tinylr();
     var reload = greload(server);
     var spy = sinon.spy(server, 'changed');
     reload.end(file);
@@ -22,6 +19,7 @@ describe('gulp-livereload', function() {
           files: [file.path]
         }
       })).ok;
+      server.changed.restore();
       done();
     });
   });
@@ -50,6 +48,7 @@ describe('gulp-livereload', function() {
           files: [file.path]
         }
       })).ok;
+      greload.servers[port].changed.restore();
       done();
     });
   });
@@ -59,11 +58,11 @@ describe('gulp-livereload', function() {
     var reload = greload(port);
     var spy = sinon.spy(gutil, 'log');
 
-    reload.changed('foo/bazbar.txt');
+    greload.changed('foo/bazbar.txt');
     spy.calledWith(gutil.colors.magenta('bazbar.txt') + ' was reloaded.').should.not.be.ok;
 
     process.env.NODE_DEBUG = 'livereload';
-    reload.changed('foo/bazbar.txt');
+    greload.changed('foo/bazbar.txt');
     spy.calledWith(gutil.colors.magenta('bazbar.txt') + ' was reloaded.').should.be.ok;
     process.env.NODE_DEBUG = null;
   });
@@ -73,9 +72,9 @@ describe('gulp-livereload', function() {
   describe('.changed', function() {
     it('works', function() {
       var port = 35728;
-      var reload = greload(port);
+      var reload = greload.listen(port);
       var spy = sinon.spy(greload.servers[port], 'changed');
-      reload.changed('foo/bar.txt');
+      greload.changed('foo/bar.txt', reload);
       should(spy.calledWith({
         body: {
           files: ['foo/bar.txt']
@@ -84,12 +83,22 @@ describe('gulp-livereload', function() {
     });
     it('works', function() {
       var port = 35726;
-      var reload = greload(port);
+      var reload = greload.listen(port);
       var spy = sinon.spy(greload.servers[port], 'changed');
-      reload.changed(file);
+      greload.changed(file, reload);
       should(spy.calledWith({
         body: {
           files: ['/foo/bar.css']
+        }
+      })).ok;
+    });
+    it('works on default port', function() {
+      var reload = greload.listen();
+      var spy = sinon.spy(greload.servers[35729], 'changed');
+      greload.changed('/me.img');
+      should(spy.calledWith({
+        body: {
+          files: ['/me.img']
         }
       })).ok;
     });
