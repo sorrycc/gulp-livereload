@@ -9,8 +9,6 @@ var gutil = require('gulp-util'),
 module.exports = exports = function (server) {
   var reload = new Transform({objectMode:true});
 
-  server = exports.listen(server);
-
   reload._transform = function(file, encoding, next) {
     exports.changed(file.path, server);
     this.push(file);
@@ -47,7 +45,7 @@ exports.listen  = function(server) {
 };
 
 exports.changed = function(filePath, server) {
-  server = server || exports.servers[defaultPort];
+  server = exports.listen(server);
   filePath = filePath.hasOwnProperty('path')? filePath.path : filePath;
   if(process.env.NODE_DEBUG && process.env.NODE_DEBUG.match(/livereload/)) {
     gutil.log(magenta(path.basename(filePath)) + ' was reloaded.');

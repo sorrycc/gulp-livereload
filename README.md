@@ -23,6 +23,8 @@ var gulp = require('gulp'),
     livereload = require('gulp-livereload'),
     watch = require('gulp-watch');
 
+livereload.listen();
+
 gulp.task('less', function() {
   gulp.src('less/*.less')
     .pipe(watch())
